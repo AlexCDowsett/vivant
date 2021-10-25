@@ -1,0 +1,5 @@
+Endpoint:         vivant-db.c04gl03xq7f6.eu-west-2.rds.amazonaws.com
+Port:             3306
+Server Location:  eu-west-2a
+username:         admin
+password:         8Am5v9Ni
