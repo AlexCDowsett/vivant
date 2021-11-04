@@ -20,15 +20,7 @@ def log(statement):
 
 
 def main():
-    door = Door(door_name)
-
-    c = conn.cursor()
-    c.execute('SELECT * FROM Doors')
-    rows = c.fetchall()
-    for row in rows:
-        print("{0} {1}".format(row[0], row[1]))
-    c.close()
-    conn.close()
+    ''
 
 
 class Door:
@@ -42,7 +34,7 @@ class Door:
             c.execute("SELECT * FROM Doors WHERE door_uuid=%s;", (self.uuid))
 
             if c.fetchone() == None:
-                c.execute('INSERT INTO Doors (door_uuid, nickname) VALUES (%s, %s);', (str(self.uuid), self.name))
+                c.execute('INSERT INTO Doors (door_uuid, nickname) VALUES (%s, %s);', (self.uuid, self.name))
                 conn.commit()
                 log(self.name + ' was missing from the database and has now been added.')
 
@@ -56,7 +48,7 @@ class Door:
             pickle.dump(self.uuid, fw)
             fw.close()
 
-            c.execute('INSERT INTO Doors (door_uuid, nickname) VALUES (%s, %s);', (str(self.uuid), self.name))
+            c.execute('INSERT INTO Doors (door_uuid, nickname) VALUES (%s, %s);', (self.uuid, self.name))
             conn.commit()
 
         c.close()
@@ -70,8 +62,10 @@ class Door:
         
         c.close()
 
+        log(self.name + ' was removed.')
+
         
-    def ring():
+    def ring(self):
         c = conn.cursor()
 
         c.execute('INSERT INTO RingLog (door_uuid) VALUES (%s);', (self.uuid))
@@ -80,19 +74,33 @@ class Door:
         c.execute('SELECT MAX(ring_id) FROM RingLog WHERE door_uuid=%s;', (self.uuid))
         temp = c.fetchone()[0]
 
-        c.execute('INSERT INTO TempUpdate (door_uuid, ring_id) VALUES (%s);', (self.uuid, temp))
+        c.execute('INSERT INTO TempUpdate (ring_id) VALUES (%s);', (temp))
         conn.commit()
 
         c.close()
+
+        log(self.name + "'s doorbell was rang.")
 
         # --> INSERT HERE CODE WHEN DOORBELL IS RUNG
 
     def unlock():
         ''
 
-    def lock();
+    def lock():
         ''
         
 
 if __name__ == '__main__': # Only runs the following code if the program is the main program and is not imported into another.
-    main() # Calls the main functio
+    main() # Calls the main function
+
+door = Door(door_name)
+
+door.ring()
+
+c = conn.cursor()
+c.execute('SELECT * FROM Doors')
+rows = c.fetchall()
+for row in rows:
+    print("{0} {1}".format(row[0], row[1]))
+c.close()
+conn.close()
