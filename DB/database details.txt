@@ -3,3 +3,27 @@ Port:             3306
 Server Location:  eu-west-2a
 username:         admin
 password:         8Am5v9Ni
+
+
+
+
+--- Example PHP requests ---
+
+Blank template:
+vivant-db.com/sql.php?password=8Am5v9Ni&query=
+
+To select from Users table:
+vivant-db.com/sql.php?password=8Am5v9Ni&query=SELECT * FROM Users
+
+To ring do:
+vivant-db.com/sql.php?password=8Am5v9Ni&query=INSERT INTO RingLog (DoorUUID) VALUES ("134f2cd6-7548-41b7-bea8-2b4d840fe3ef")
+
+To TTS request do:
+vivant-db.com/sql.php?password=8Am5v9Ni&query=INSERT INTO TTSLog (DoorUUID, Request) VALUES ("134f2cd6-7548-41b7-bea8-2b4d840fe3ef", "Hello, who is there?")
+
+To unlock do:
+vivant-db.com/sql.php?password=8Am5v9Ni&query=INSERT INTO LockLog (DoorUUID, DoorStatus) VALUES ("134f2cd6-7548-41b7-bea8-2b4d840fe3ef", "UNLOCK");
+
+To lock do:
+vivant-db.com/sql.php?password=8Am5v9Ni&query=INSERT INTO LockLog (DoorUUID, DoorStatus) VALUES ("134f2cd6-7548-41b7-bea8-2b4d840fe3ef", "LOCK");
+
