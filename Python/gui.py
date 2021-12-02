@@ -82,6 +82,8 @@ class App():
         def ring(self, *args):
             self.door.ring()
             self.ring = 1
+            self.bell_label.bind('<Button-1>', '')
+            self.ring_label.bind('<Button-1>', '')
 
         def play_gif(self, i=0):
             if i == 0:
@@ -100,7 +102,7 @@ class App():
             i += 1
             self.root.after(10, self.play_gif, i)
 
-        def play_ringing_animation(self, i=0):
+        def play_ringing_animation(self, i):
             if i == 0:
                 self.body_label.config(text="Ringing   \n\nPlease wait")
             elif i == 1:
