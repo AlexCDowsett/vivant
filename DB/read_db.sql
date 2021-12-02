@@ -1,0 +1,6 @@
+USE Vivant_DB;
+SELECT * FROM Doors;
+SELECT * FROM Users;
+SELECT * FROM LockLog;
+SELECT * FROM RingLog;
+SELECT * FROM TTSLog;
