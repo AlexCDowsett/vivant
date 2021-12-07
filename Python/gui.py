@@ -2,7 +2,7 @@ import tkinter as tk
 from time import sleep
 from sql import Door
 from sql import log
-from fingerprint import Fingerprint
+#from fingerprint import Fingerprint
 
 user = "alexd22"
 known = False
@@ -42,7 +42,11 @@ class App():
             if setup == True:
                 self.setup = 1
             else:
-                self.setup = False
+                self.setup = 0
+
+            self.fp = False
+            self.ring = 0
+            self.fptimer = 0
                 
             self.header_label = tk.Label(self.root, bg=bg_colour, fg=text_colour, font=(header_font, header_font_size, "bold"))
             self.header_label.place(x=0, y=20, w=480, h=60)
@@ -72,6 +76,9 @@ class App():
                 self.bell_label.image = self.bell_image
                 self.bell_label.bind('<Button-1>', self.ring)
 
+                self.cross_image = tk.PhotoImage(file='resources/red-cross.png')
+                self.tick_image = tk.PhotoImage(file='resources/green-tick.png')
+
                 bg_rgb = bg_colour.lstrip('#')
                 bg_rgb = tuple(int(bg_rgb[i:i + 2], 16) for i in range(0, 6, 2))
 
@@ -84,15 +91,16 @@ class App():
                         self.text_fade.append('#%02x%02x%02x' % (round((text_rgb[0]*j/30)+(bg_rgb[0]*(30-j)/30)),round((text_rgb[1]*j/30)+(bg_rgb[1]*(30-j)/30)),round((text_rgb[2]*j/30)+(bg_rgb[2]*(30-j)/30))))
 
             self.door = Door()
-            self.fingerprint = Fingerprint(self.door.users())
+            #self.fingerprint = Fingerprint(self.door.users())
             self.scheduler()
             self.root.mainloop()
 
         def ring(self, *args):
-            self.door.ring()
-            self.ring = 1
-            self.bell_label.bind('<Button-1>', '')
-            self.ring_label.bind('<Button-1>', '')
+            if self.setup == 0:
+                self.door.ring()
+                self.ring = 1
+                self.bell_label.bind('<Button-1>', '')
+                self.ring_label.bind('<Button-1>', '')
 
         def play_gif(self, i=0):
             if i == 0:
@@ -120,6 +128,28 @@ class App():
                 self.body_label.config(text="Ringing.. \n\nPlease wait")
             else:
                 self.body_label.config(text="Ringing...\n\nPlease wait")
+
+        def fp_check(self):
+            if self.fp == False:
+                self.setup = 0
+                self.ring_label.config(image=self.ring_gif[0])
+                self.ring_label.image = self.ring_gif[0]
+
+                self.bell_label = tk.Label(self.root, image=self.bell_image, bg=bg_colour)
+                self.bell_label.place(x=215, y=140, w=50, h=50)
+                self.bell_label.image = self.bell_image
+                return
+            
+            self.setup = -1
+            self.bell_label.destroy()
+            if self.fp == True:
+                log("No match found!")
+                self.ring_label.config(image=self.cross_image)
+                self.ring_label.image = self.cross_image
+            else:
+                log("Fingerprint found for " + self.fp[0] + " with an accuracy score of " + str(self.fp[1]))
+                self.ring_label.config(image=self.tick_image)
+                self.ring_label.image = self.tick_image
 
         def scheduler(self, i=0):
             while self.door.check():
@@ -159,14 +189,27 @@ class App():
                     log("Fingerprints do not match. Please try again")
                 elif result != False:
                     log("Fingerprint sucessfully added")
-                    self.setup = False
+                    self.setup = 0
                     
-            if self.setup == False:
-                result = self.fingerprint.search()
-                if result == True:
-                    log("No match found!")
-                elif result != False:
-                    log("Fingerprint found for " + result[0] + " with an accuracy score of " + str(result[1]))
+            if self.setup == 0:
+                #if i % 10 == 5:
+                #    self.fp = ["alexd22", 99]
+                #if i % 10 == 9:
+                #    self.fp = True
+                    
+                #self.fp = self.fingerprint.search()
+                if self.fp != False:
+                    self.fp_timer = 3
+                    self.fp_check()
+
+
+
+            if self.setup == -1:
+                self.fp_timer -= 1
+                
+                if self.fp_timer <= 0:
+                    self.fp = False
+                    self.fp_check()
                 
             i += 1
             self.root.after(scheduler_speed, self.scheduler, i)
