@@ -3,22 +3,27 @@ from pydub import AudioSegment
 from pydub.silence import split_on_silence
 import os
 
+class S2T_fromFile:
+    def __init__(self, path):
+        self.r = sr.Recognizer()
+        self.filename = path
+        self.audio_text = ""
 
-r = sr.Recognizer()
+    def encode(self): 
+        with sr.AudioFile(self.filename) as source:
+            recorded_audio = self.r.listen(source)
+            print("Done encoding")
 
-filename = 'test.wav'
-
-with sr.AudioFile(filename) as source:
-    audio_text = r.record(source)
-
-    try:
-        text_file = open("Output.txt", "w")
-        text_file.write("%s" % r.recognize_google(audio_text))
-        text_file.close()
-        print('Converting audio to text file')
-        #remove this after
-        text = r.recognize_google(audio_text)
-        print(text)
-
-    except:
-        print('This failed!')
+        try:
+            print("Recognizing text")
+            self.audio_text = self.r.recognize_google(
+                recorded_audio, 
+                language="en-US"
+            )
+            print("Decoded Text : {}".format(self.audio_text))
+            with open("Output.txt", "w") as f:
+                f.write(self.audio_text)
+                f.close()
+                
+        except:
+            print('This failed!')
