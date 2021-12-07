@@ -1,12 +1,15 @@
 import tkinter as tk
 from time import sleep
 from sql import Door
+from sql import log
+from fingerprint import Fingerprint
 
-user = "Chris"
+user = "alexd22"
 known = False
 
 # CONFIG
 debug = True
+setup = False
 scheduler_speed = 1000 # frequency of scheduler in miliseconds.
 
 bg_colour = '#FFFFFF' # Blackground colour in hexadecimal.                            
@@ -35,6 +38,11 @@ class App():
                 self.root.focus_set()
                 self.root.overrideredirect(True)
                 self.root.wm_attributes("-topmost", 1)
+                
+            if setup == True:
+                self.setup = 1
+            else:
+                self.setup = False
                 
             self.header_label = tk.Label(self.root, bg=bg_colour, fg=text_colour, font=(header_font, header_font_size, "bold"))
             self.header_label.place(x=0, y=20, w=480, h=60)
@@ -76,6 +84,7 @@ class App():
                         self.text_fade.append('#%02x%02x%02x' % (round((text_rgb[0]*j/30)+(bg_rgb[0]*(30-j)/30)),round((text_rgb[1]*j/30)+(bg_rgb[1]*(30-j)/30)),round((text_rgb[2]*j/30)+(bg_rgb[2]*(30-j)/30))))
 
             self.door = Door()
+            self.fingerprint = Fingerprint(self.door.users())
             self.scheduler()
             self.root.mainloop()
 
@@ -122,6 +131,42 @@ class App():
 
             if self.ring == 2:
                 self.play_ringing_animation(i%4)
+                
+            if self.setup == 1:
+                result = self.fingerprint.enroll()
+                if result == True:
+                    self.setup = 3
+                    log("Fingerprint read sucessfully")
+                    
+                elif result != False:
+                    log("Fingerprint already exists for user " + result)
+                    self.setup = 2
+                    
+            if self.setup == 2:
+                if self.fingerprint.is_finger_present() == False:
+                    self.setup = 1
+                    log("Fingerprint removed")
+                    
+            if self.setup == 3:
+                if self.fingerprint.is_finger_present() == False:
+                    self.setup = 4
+                    log("Fingerprint removed")
+                    
+            if self.setup == 4:
+                result = self.fingerprint.enroll_confirm(user)
+                if result == True:
+                    self.setup = 1
+                    log("Fingerprints do not match. Please try again")
+                elif result != False:
+                    log("Fingerprint sucessfully added")
+                    self.setup = False
+                    
+            if self.setup == False:
+                result = self.fingerprint.search()
+                if result == True:
+                    log("No match found!")
+                elif result != False:
+                    log("Fingerprint found for " + result[0] + " with an accuracy score of " + str(result[1]))
                 
             i += 1
             self.root.after(scheduler_speed, self.scheduler, i)

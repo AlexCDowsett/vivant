@@ -24,6 +24,7 @@ def log(statement):
 
 def main():
     door = Door()
+    door.users()
 
     s = sched.scheduler(time.time, time.sleep)
     s.enter(1, 1, door.check, (s,))
@@ -125,6 +126,14 @@ class Door:
         log(self.name + "'s Text-To-Speech message recieved: " + request)
 
         # --> INSERT HERE CODE FOR TTS
+        
+    def users(self):
+        
+        c = conn.cursor()
+        c.execute('SELECT Username From Users WHERE DoorUUID = %s;', self.uuid)
+        result = c.fetchall()
+        c.close()
+        return result
         
     def check(self, s=None):
 
