@@ -9,7 +9,7 @@ known = False
 
 # CONFIG
 debug_mode = True
-setup_mode = True
+setup_mode = False
 scheduler_speed = 1000 # frequency of scheduler in miliseconds.
 bg_colour = '#FFFFFF' # Blackground colour in hexadecimal.                            
 text_colour = '#343038' # Text colour in hexadecimal.                             
@@ -150,6 +150,7 @@ class App():
                     self.bell_label.place(x=215, y=100, w=50, h=50)
                     self.bell_label.image = self.bell_image
                     self.body_label.config(text="\n\n\n\n\n\nPlease present your finger\n on the scanner below")
+                    self.bell_label.bind('<Button-1>', self.ring)
                                     
                 return
             
