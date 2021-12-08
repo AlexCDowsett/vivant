@@ -4,7 +4,7 @@ import pickle
 
 
 # CONFIG
-serial = '/dev/ttyUSB0'
+serial = '/dev/ttyS0'
 
 def main():
     '''This function is run when the program starts.'''
@@ -77,7 +77,6 @@ class Fingerprint():
         positionNumber = result[0]
 
         if ( positionNumber >= 0 ):
-            print('Template already exists at position #' + str(positionNumber))
             return self.users[positionNumber]
             
         return True
@@ -95,8 +94,6 @@ class Fingerprint():
         self.f.createTemplate()
 
         positionNumber = self.f.storeTemplate()
-        print('Finger enrolled successfully!')
-        print('New template position #' + str(positionNumber) + ' for user ' + str(username))
         
         while len(self.users) < (positionNumber+1):
             self.users.append(None)
@@ -105,8 +102,6 @@ class Fingerprint():
         file = open('fingerprint.data', 'wb')
         pickle.dump(self.users, file)
         file.close()
-
-        print(self.users)
         
         return positionNumber
         
@@ -121,7 +116,6 @@ class Fingerprint():
         if ( result[0] == -1 ):
             return True
 
-        print('The accuracy score is: ' + str(result[1]))
         return [self.users[result[0]], result[1]]
     
     def delete(self, positionNumber):

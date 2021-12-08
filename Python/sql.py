@@ -134,6 +134,13 @@ class Door:
         result = c.fetchall()
         c.close()
         return result
+    
+    def name_of_user(self, username):
+        c = conn.cursor()
+        c.execute('SELECT FirstName, LastName FROM Users WHERE Username = %s;', username)
+        result = c.fetchone()
+        c.close()
+        return result
         
     def check(self, s=None):
 
