@@ -1,55 +1,59 @@
 from bluepy import btle
 import struct
+import time
+import sched
 
 def main():
     #p = btle.Peripheral("10:21:3E:59:F0:C1")
-    p = chimeBLE("10:21:3E:59:F0:C1", "jdy-23")
+    p = Bluetooth("10:21:3E:59:F0:C1", "jdy-23")
     #delegate = bleDelegate(0)
     #p.withDelegate(delegate)
-    p.read_wait(10.0)
-#        print("ASS")
-    print("data = ", p.delegate.data)
-    
-    p.delegate.data = 'i'
-    print("data = ", p.delegate.data)
-    
-    p.read_wait(10.0)
-#        print("ASS")
-    print("data = ", p.delegate.data)
+    p.read_wait(1.0)
+  
+    while True:
+        #p.read_wait(10.0)
+        #print("ASS")
+        time.sleep(1)
+        p.send_data('s')
     
     
 
 class bleDelegate(object):
     def __init__(self, *args):
         #btle.DefaultDelegate.__init__(self)
-        self.data = 's'
-
-    def handleNotification(self,cHandle,data):
-        print("Notfication recieved")
-        #print(struct.unpack("c",data))
-        self.data = struct.unpack("c",data)
+        self.handle = 1
+        
+    def handleNotification(self, cHandle, raw_data):
+        self.handle = cHandle
+        data = raw_data.decode("utf-8")
+        data = data.replace('\r','')
+        print(data)
+        if str(data) == "open":
+            print("OPEN!")
+            return True
+        elif str(data) == "closed":
+            print("CLOSED!")
+            return False
+        #self.data = struct.unpack("!b",data)
         #p.writeCharacteristic(cHandle, struct.pack('i',1), False)
 
 #p = btle.Peripheral("10:21:3e:59:f0:c1")
 #p.setDelegate(bleDelegate(0))
 
-class chimeBLE:
+class Bluetooth:
     def __init__(self, mac, name):
         self.mac = mac
         self.name = name
         self.chime = btle.Peripheral(self.mac)
-        #get the handle characteristic from underlying GATT protocol
         self.handle = 0x01
         #self.handle = self.chime.getHandle()
-        #self.chime = btle.Peripheral("10:21:3e:59:f0:c1")
-        self.delegate = bleDelegate(0)
+        self.delegate = bleDelegate()
         self.chime.withDelegate(self.delegate)
         self.response = False
         self.status = True
-    #def connect(self):
 
     def send_data(self, data):
-        self.chime.writeCharacteristic(self.handle, struct.pack("i", data))
+        self.chime.writeCharacteristic(self.delegate.handle, struct.pack("!s", data.encode('ascii')), False)
         #return response
 
     def read_wait(self, wait_s):

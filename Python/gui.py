@@ -12,8 +12,9 @@ debug_mode = True
 setup_mode = False
 scheduler_speed = 1000 # frequency of scheduler in miliseconds.
 bg_colour = '#FFFFFF' # Blackground colour in hexadecimal.                            
-text_colour = '#343038' # Text colour in hexadecimal.                             
-                              
+text_colour = '#343038' # Text colour in hexadecimal.
+
+JITSI_ID = None                              
 header_font = 'Helvetica' # A font to be used primarily.
 header_font_size = 22
 body_font = 'Arial' # A font to be used secondarily.
@@ -172,12 +173,16 @@ class App():
                 
 
         def scheduler(self):
+            print(self.i)
             while self.door.check():
                 ''
 
             if self.ring_status == 1:
                 self.ring_status = 0
                 self.play_gif()
+                chat_id = JITSI_ID if JITSI_ID else str(uuid.uuid4())
+                video_chat = VideoChat(chat_id)
+                video_chat.start()
 
             if self.ring_status == 2:
                 self.play_ringing_animation()
@@ -224,8 +229,8 @@ class App():
                     self.setup = 0
                     self.header_label.config(text='Welcome')
                     self.temp_label.destroy()
+                    
             if self.setup == 0:
-
                 self.fp = self.fingerprint.search()
                 if self.fp != False:
                     self.fp_timer = 3

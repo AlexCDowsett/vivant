@@ -4,6 +4,7 @@ import pickle
 import time
 import datetime
 import sched
+from T2S import T2S
 
 # Configuration
 
@@ -124,8 +125,10 @@ class Door:
             c.close()
 
         log(self.name + "'s Text-To-Speech message recieved: " + request)
-
-        # --> INSERT HERE CODE FOR TTS
+        t2s = T2S(request)
+        t2s.encode()
+        t2s.play()
+        t2s.remove()
         
     def users(self):
         
