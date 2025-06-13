@@ -5,6 +5,8 @@ import time
 import datetime
 import sched
 from T2S import T2S
+from ble import bleDelegate
+from ble import Bluetooth
 
 # Configuration
 
@@ -26,6 +28,7 @@ def log(statement):
 def main():
     door = Door()
     door.users()
+    door.ring()
 
     s = sched.scheduler(time.time, time.sleep)
     s.enter(1, 1, door.check, (s,))
@@ -34,9 +37,17 @@ def main():
 
 
 class Door:
-    def __init__(self):
-        
-        try: 
+    def __init__(self, bluetooth=True):
+        if bluetooth == True:
+            self.b = True
+            self.p = Bluetooth("10:21:3E:59:F0:C1", "jdy-23")
+            self.p.read_wait(1.0)
+            time.sleep(1)
+            self.p.send_data('s')
+        else:
+            self.b = False
+        try:
+            self.setup_required = False
             fd = open('uuid.data', 'rb')
             self.uuid = pickle.load(fd)
 
@@ -59,6 +70,7 @@ class Door:
         except FileNotFoundError:
             log('New door detected.')
             self.__new()
+            self.setup_required = True
 
 
         
@@ -94,6 +106,10 @@ class Door:
         log(self.name + "'s doorbell was rang.")
 
         # --> INSERT HERE CODE WHEN DOORBELL IS RANG
+        if self.b == True:
+            self.p.send_data('p')
+            self.p.send_data('p')
+            self.p.send_data('p')
 
     def unlock(self, hidden=False):
         if hidden == False:
@@ -105,6 +121,10 @@ class Door:
         log(self.name + " was unlocked.")
 
         # --> INSERT HERE CODE WHEN DOOR IS UNLOCKED
+        if self.b == True:
+            self.p.send_data('o')
+            self.p.send_data('o')
+            self.p.send_data('o')
         
     def lock(self, hidden=False):
         if hidden == False:
@@ -116,8 +136,12 @@ class Door:
         log(self.name + " was locked.")
 
         # --> INSERT HERE CODE WHEN DOOR IS LOCKED
+        if self.b == True:
+            self.p.send_data('c')
+            self.p.send_data('c')
+            self.p.send_data('c')
 
-    def tts(self, request, hidden=False):
+    def tts(self, request, hidden=False, buffer=False):
         if hidden == False:
             c = conn.cursor()
             c.execute('INSERT INTO TTSLog (DoorUUID, Request, Executed) VALUES (%s, %s, 1);', (self.uuid, request))
@@ -125,6 +149,10 @@ class Door:
             c.close()
 
         log(self.name + "'s Text-To-Speech message recieved: " + request)
+        if buffer == False:
+            tts_play(request)
+            
+    def tts_play(self, request):
         t2s = T2S(request)
         t2s.encode()
         t2s.play()
@@ -142,6 +170,8 @@ class Door:
         c = conn.cursor()
         c.execute('SELECT FirstName, LastName FROM Users WHERE Username = %s;', username)
         result = c.fetchone()
+        if result == None:
+            result = ['', '']
         c.close()
         return result
         
@@ -170,7 +200,7 @@ class Door:
             if ans[3] == 'UNLOCK':
                 self.unlock(hidden=True)
             elif ans[3] == 'LOCK':
-                self.lock(hidden=False)
+                self.lock(hidden=True)
             c.execute('UPDATE LockLog SET Executed = 1 WHERE LockID = %s;', (ans[0],))
             updates = True
 
@@ -178,9 +208,9 @@ class Door:
         c.execute('SELECT * FROM TTSLog WHERE Executed = 0 AND DoorUUID=%s AND DateTime > %s;', (self.uuid, dt_threshold))
         ans = c.fetchone()
         if ans is not None:
-            self.tts(ans[2], hidden=True)
+            self.tts(ans[2], hidden=True, buffer=True)
             c.execute('UPDATE TTSLog SET Executed = 1 WHERE TTSID = %s;', (ans[0],))
-            updates = True
+            updates = ans[2]
 
         conn.commit() 
         c.close()

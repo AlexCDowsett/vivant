@@ -4,7 +4,9 @@ import pickle
 
 
 # CONFIG
-serial = '/dev/ttyS0'
+PORT = '/dev/ttyS0'
+DIRECTORY = 'resources/userdata/'
+
 
 def main():
     '''This function is run when the program starts.'''
@@ -13,7 +15,7 @@ def main():
 class Fingerprint():
     def __init__(self, users):
         try:
-            self.f = PyFingerprint(serial, 57600, 0xFFFFFFFF, 0x00000000)
+            self.f = PyFingerprint(PORT, 57600, 0xFFFFFFFF, 0x00000000)
 
             if (self.f.verifyPassword() == False):
                 raise ValueError('The given fingerprint sensor password is wrong!')
@@ -25,7 +27,7 @@ class Fingerprint():
             
         # Sync Users
         try: 
-            file = open('fingerprint.data', 'rb')
+            file = open((DIRECTORY + 'fingerprint.data'), 'rb')
             self.users = pickle.load(file)
             if len(self.users) == 0:
                 self.users = []
@@ -50,13 +52,13 @@ class Fingerprint():
                         self.users.pop()
                         
                         
-                file = open('fingerprint.data', 'wb')
+                file = open((DIRECTORY + 'fingerprint.data'), 'wb')
                 pickle.dump(self.users, file)
                 file.close()
                 
             
         except FileNotFoundError:
-            file = open('fingerprint.data', 'wb')
+            file = open((DIRECTORY + 'fingerprint.data'), 'wb')
             self.users = []
             self.delete_all()
             pickle.dump(self.users, file)
@@ -99,7 +101,7 @@ class Fingerprint():
             self.users.append(None)
             
         self.users[positionNumber] = username
-        file = open('fingerprint.data', 'wb')
+        file = open((DIRECTORY + 'fingerprint.data'), 'wb')
         pickle.dump(self.users, file)
         file.close()
         

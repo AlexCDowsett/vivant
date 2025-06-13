@@ -1,21 +1,9 @@
 from bluepy import btle
 import struct
 import time
-import sched
 
 def main():
-    #p = btle.Peripheral("10:21:3E:59:F0:C1")
-    p = Bluetooth("10:21:3E:59:F0:C1", "jdy-23")
-    #delegate = bleDelegate(0)
-    #p.withDelegate(delegate)
-    p.read_wait(1.0)
-  
-    while True:
-        #p.read_wait(10.0)
-        #print("ASS")
-        time.sleep(1)
-        p.send_data('s')
-    
+    pass
     
 
 class bleDelegate(object):
